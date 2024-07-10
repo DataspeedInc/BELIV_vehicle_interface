@@ -12,14 +12,14 @@ find_package(tier4_api_utils REQUIRED)
 find_package(tier4_debug_msgs REQUIRED)
 find_package(tier4_external_api_msgs REQUIRED)
 find_package(tier4_vehicle_msgs REQUIRED)
-find_package(dbw_ford_msgs REQUIRED)
+find_package(dbw_fca_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(dataspeed_ulc_msgs REQUIRED)
 find_package(dataspeed_dbw_common REQUIRED)
-find_package(autoware_auto_control_msgs REQUIRED)
-find_package(autoware_auto_vehicle_msgs REQUIRED)
+find_package(autoware_control_msgs REQUIRED)
+find_package(autoware_vehicle_msgs REQUIRED)
 find_package(can_msgs REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(autoware_vehicle_info_utils REQUIRED)
@@ -42,7 +42,6 @@ add_executable(beliv_veh_interface
 )
 
 ament_target_dependencies(beliv_veh_interface
-  "rclcpp"
   "std_msgs"
   "geometry_msgs"
   "tier4_api_msgs"
@@ -50,30 +49,38 @@ ament_target_dependencies(beliv_veh_interface
   "tier4_debug_msgs"
   "tier4_external_api_msgs"
   "tier4_vehicle_msgs"
-  "dbw_ford_msgs"
+  "dbw_fca_msgs"
   "sensor_msgs"
   "dataspeed_ulc_msgs"
   "dataspeed_dbw_common"
-  "autoware_auto_control_msgs"
-  "autoware_auto_vehicle_msgs"
+  "autoware_control_msgs"
+  "autoware_vehicle_msgs"
   "can_msgs"
   "message_filters"
   "autoware_vehicle_info_utils"
 )
 
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  ament_lint_auto_find_test_dependencies()
-endif()
+# if(BUILD_TESTING)
+#   find_package(ament_lint_auto REQUIRED)
+#   ament_lint_auto_find_test_dependencies()
+# endif()
 
-# install(TARGETS
-#   beliv_veh_interface
-#   ARCHIVE DESTINATION lib
-#   LIBRARY DESTINATION lib
-#   RUNTIME DESTINATION lib/${PROJECT_NAME}
-# )
+install(
+  TARGETS
+    beliv_veh_interface
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  PROGRAMS
+    scripts/sys_enable_node.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_auto_package(
   INSTALL_TO_SHARE
+  src
   launch
 )
