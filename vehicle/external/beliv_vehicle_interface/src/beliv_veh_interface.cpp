@@ -83,10 +83,10 @@ BelivVehInterface::BelivVehInterface()
     //this, "/control/command/control_cmd");
   //sub_gear_cmd_ = create_subscription<GearCommand>("input/gear_command", QoS{1},[this](const GearCommand::SharedPtr msg) { current_gear_cmd_ = *msg; });
   //sub_manual_gear_cmd_ = create_subscription<GearCommand>("input/manual_gear_command", QoS{1},[this](const GearCommand::SharedPtr msg) { current_manual_gear_cmd_ = *msg; });
-/*   
-  sub_turn_indicators_cmd_ = create_subscription<TurnIndicatorsCommand>("input/turn_indicators_command", QoS{1},std::bind(&SimplePlanningSimulator::on_turn_indicators_cmd, this, _1));
-  sub_hazard_lights_cmd_ = create_subscription<HazardLightsCommand>("input/hazard_lights_command", QoS{1},std::bind(&SimplePlanningSimulator::on_hazard_lights_cmd, this, _1));
- */
+
+  sub_turn_indicators_cmd_ = create_subscription<TurnIndicatorsCommand>("/control/command/turn_indicators_cmd", 1,std::bind(&BelivVehInterface::callbackTurnIndicatorsCmd, this, _1));
+  // sub_hazard_lights_cmd_ = create_subscription<HazardLightsCommand>("/control/command/hazard_lights_command", 1,std::bind(&BelivVehInterface::callbackHazardLightsCmd, this, _1));
+ 
   sub_emergency_ = create_subscription<tier4_vehicle_msgs::msg::VehicleEmergencyStamped>(
     "/control/command/emergency_cmd", 1,
     std::bind(&BelivVehInterface::callbackEmergencyCmd, this, _1));
@@ -113,6 +113,12 @@ BelivVehInterface::BelivVehInterface()
   /* publisher */
   //to UlcNode
   pub_ulc_cmd_=create_publisher<dataspeed_ulc_msgs::msg::UlcCmd>("/vehicle/ulc_cmd", 2);
+  pub_turn_indicators_cmd_ = create_publisher<dbw_fca_msgs::msg::MiscCmd>("/vehicle/misc_cmd", 2);
+  pub_hazard_lights_cmd_ = create_publisher<dbw_fca_msgs::msg::MiscCmd>("/vehicle/hazard_lights_cmd", 2);
+  // //to DbwNode
+  // pub_turn_indicators_cmd_ = create_publisher<dbw_fca_msgs::msg::MiscCmd>(
+    
+  // )
 
   //to Autoware
   pub_battery_status_ = create_publisher<tier4_vehicle_msgs::msg::BatteryStatus>(
@@ -285,18 +291,21 @@ void BelivVehInterface::callbackControlCmd(
   ulc_cmd_.header.frame_id = base_frame_id_;
   ulc_cmd_.header.stamp = get_clock()->now();
   // Populate command fields
-  ulc_cmd_.pedals_mode = dataspeed_ulc_msgs::msg::UlcCmd::SPEED_MODE;
+  ulc_cmd_.pedals_mode = dataspeed_ulc_msgs::msg::UlcCmd::ACCEL_MODE;
 
-  if ( msg.longitudinal.velocity < 0.001){
-      ulc_cmd_.linear_velocity = 0.0;
-  }
-  else if (msg.longitudinal.velocity < 0.5){
-    ulc_cmd_.linear_velocity = 0.5;
-  }
-  else{
-    ulc_cmd_.linear_velocity = msg.longitudinal.velocity;
-  }
+  // if ( msg.longitudinal.velocity < -0.5) {
+  //   ulc_cmd_.linear_velocity = msg.longitudinal.velocity;
+  // } else if (msg.longitudinal.velocity < -0.001) {
+  //   ulc_cmd_.linear_velocity = -0.5;
+  // } else if (msg.longitudinal.velocity < 0.001) {
+  //   ulc_cmd_.linear_velocity = 0.0;
+  // } else if (msg.longitudinal.velocity < 0.5) {
+  //   ulc_cmd_.linear_velocity = 0.5;
+  // } else {
+  //   ulc_cmd_.linear_velocity = msg.longitudinal.velocity;
+  // }
 
+  ulc_cmd_.accel_cmd = msg.longitudinal.acceleration;
   ulc_cmd_.yaw_command = sub_steering_ptr_->speed* tan(msg.lateral.steering_tire_angle)/wheel_base_;
   ulc_cmd_.steering_mode = dataspeed_ulc_msgs::msg::UlcCmd::YAW_RATE_MODE;
 
@@ -307,12 +316,55 @@ void BelivVehInterface::callbackControlCmd(
   ulc_cmd_.enable_steering = true;
   ulc_cmd_.shift_from_park = true;
   ulc_cmd_.linear_accel = 0;
-  ulc_cmd_.linear_decel = 0;
+  ulc_cmd_.linear_decel = 3.0;
   ulc_cmd_.angular_accel = 0;
   ulc_cmd_.lateral_accel = 0;
   ulc_cmd_.jerk_limit_throttle=0;
   ulc_cmd_.jerk_limit_brake=0;
   //printf("ulc_cmd.linear_vel=%f", ulc_cmd_.linear_velocity);
+}
+
+void BelivVehInterface::callbackTurnIndicatorsCmd(
+  const TurnIndicatorsCommand& turning_indicators_cmd)
+{
+  misc_command_received_time_ = this->now();
+  misc_cmd_.header.frame_id = base_frame_id_;
+  misc_cmd_.header.stamp = get_clock()->now();
+  
+  if (turning_indicators_cmd.command == TurnIndicatorsCommand::NO_COMMAND) {
+    misc_cmd_.cmd.value = dbw_fca_msgs::msg::TurnSignal::NONE;
+  }
+  else if (turning_indicators_cmd.command == TurnIndicatorsCommand::ENABLE_RIGHT) {
+    misc_cmd_.cmd.value = dbw_fca_msgs::msg::TurnSignal::RIGHT;
+  }
+  else if (turning_indicators_cmd.command == TurnIndicatorsCommand::ENABLE_LEFT) {
+    misc_cmd_.cmd.value = dbw_fca_msgs::msg::TurnSignal::LEFT;
+  }
+  else if (turning_indicators_cmd.command == TurnIndicatorsCommand::DISABLE) {
+    misc_cmd_.cmd.value = dbw_fca_msgs::msg::TurnSignal::NONE;
+  }
+
+  // Set other fields to default values
+  misc_cmd_.door.header.stamp = misc_cmd_.header.stamp;
+  misc_cmd_.door.select = 0;
+  misc_cmd_.door.action = 0;
+  misc_cmd_.ft_drv_temp.value = 0;
+  misc_cmd_.ft_psg_temp.value = 0;
+  misc_cmd_.ft_fan_speed.value = 0;
+  misc_cmd_.max_ac.cmd = 0;
+  misc_cmd_.ac.cmd = 0;
+  misc_cmd_.ft_hvac.cmd = 0;
+  misc_cmd_.auto_md.cmd = 0;
+  misc_cmd_.recirc.cmd = 0;
+  misc_cmd_.sync.cmd = 0;
+  misc_cmd_.r_defr.cmd = 0;
+  misc_cmd_.f_defr.cmd = 0;
+  misc_cmd_.vent_mode.value = 0;
+  misc_cmd_.heated_steering_wheel.cmd = 0;
+  misc_cmd_.fl_heated_seat.value = 0;
+  misc_cmd_.fr_heated_seat.value = 0;
+  misc_cmd_.fl_vented_seat.value = 0;
+  misc_cmd_.fr_vented_seat.value = 0;
 }
 
 void BelivVehInterface::callbackBrakeRpt(
@@ -395,6 +447,7 @@ void BelivVehInterface::publishCommands(){
       sub_steering_ptr_ !=nullptr, sub_gear_ptr_!=nullptr, sub_misc1_ptr_!=nullptr, sub_ulc_rpt_ptr_!=nullptr
     );
   } */
+  pub_turn_indicators_cmd_->publish(misc_cmd_);
   pub_ulc_cmd_->publish(ulc_cmd_);
 
 }

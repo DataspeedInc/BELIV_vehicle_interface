@@ -51,6 +51,7 @@
 #include <dbw_fca_msgs/msg/misc1_report.hpp>
 #include <dbw_fca_msgs/msg/steering_cmd.hpp>
 #include <dbw_fca_msgs/msg/steering_report.hpp>
+#include <dbw_fca_msgs/msg/misc_cmd.hpp>
 // #include <dbw_fca_msgs/msg/surround_report.hpp>
 #include <dbw_fca_msgs/msg/throttle_cmd.hpp>
 #include <dbw_fca_msgs/msg/throttle_info_report.hpp>
@@ -124,6 +125,8 @@ public:
     using ActuationStatusStamped = tier4_vehicle_msgs::msg::ActuationStatusStamped;
     using SteeringWheelStatusStamped = tier4_vehicle_msgs::msg::SteeringWheelStatusStamped;
     using ControlModeCommand = autoware_vehicle_msgs::srv::ControlModeCommand;
+    using HazardLightsCommand = autoware_vehicle_msgs::msg::HazardLightsCommand;
+    using TurnIndicatorsCommand = autoware_vehicle_msgs::msg::TurnIndicatorsCommand;
     BelivVehInterface();
 
 private:
@@ -150,9 +153,9 @@ private:
     // from Autoware
     rclcpp::Subscription<autoware_control_msgs::msg::Control>::SharedPtr sub_control_cmd_;
     rclcpp::Subscription<autoware_vehicle_msgs::msg::GearCommand>::SharedPtr sub_gear_cmd_;
-    rclcpp::Subscription<autoware_vehicle_msgs::msg::TurnIndicatorsCommand>::SharedPtr
+    rclcpp::Subscription<TurnIndicatorsCommand>::SharedPtr
         sub_turn_indicators_cmd_;
-    rclcpp::Subscription<autoware_vehicle_msgs::msg::HazardLightsCommand>::SharedPtr
+    rclcpp::Subscription<HazardLightsCommand>::SharedPtr
         sub_hazard_lights_cmd_;
     //rclcpp::Subscription<ActuationCommandStamped>::SharedPtr sub_actuation_cmd_;
     rclcpp::Subscription<tier4_vehicle_msgs::msg::VehicleEmergencyStamped>::SharedPtr sub_emergency_;
@@ -192,6 +195,9 @@ private:
     /* Publisher */
     // To UlcNode
     rclcpp::Publisher<dataspeed_ulc_msgs::msg::UlcCmd>::SharedPtr pub_ulc_cmd_;
+    // To dbwNode
+    rclcpp::Publisher<dbw_fca_msgs::msg::MiscCmd>::SharedPtr pub_turn_indicators_cmd_;
+    rclcpp::Publisher<dbw_fca_msgs::msg::MiscCmd>::SharedPtr pub_hazard_lights_cmd_;
 
 
     // To Autoware
@@ -231,13 +237,17 @@ private:
     dataspeed_ulc_msgs::msg::UlcReport::ConstSharedPtr sub_ulc_rpt_ptr_;
     dbw_fca_msgs::msg::BrakeReport::ConstSharedPtr sub_brake_ptr_;
     dataspeed_ulc_msgs::msg::UlcCmd ulc_cmd_;
+    dbw_fca_msgs::msg::MiscCmd misc_cmd_;
 
     bool is_emergency_{false};
     rclcpp::Time control_command_received_time_;
+    rclcpp::Time misc_command_received_time_;
 
    
     void callbackControlCmd(
         const autoware_control_msgs::msg::Control& msg);
+    void callbackTurnIndicatorsCmd(
+        const TurnIndicatorsCommand& turning_indicators_cmd);
     void callbackBrakeRpt(const dbw_fca_msgs::msg::BrakeReport::ConstSharedPtr rpt);
     void callbackInterface(
         const dbw_fca_msgs::msg::SteeringReport::ConstSharedPtr steering_rpt,
