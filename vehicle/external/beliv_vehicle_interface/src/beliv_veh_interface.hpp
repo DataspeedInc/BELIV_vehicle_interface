@@ -143,6 +143,7 @@ private:
     bool is_dbw_rpt_received_ = false;
     bool is_clear_override_needed_ = false;
     bool prev_override_ = false;
+    bool publish_turn_indicators_ = true;
     double loop_rate_;           // [Hz]
     double wheel_base_;
     double steering_ratio_;
@@ -196,8 +197,8 @@ private:
     // To UlcNode
     rclcpp::Publisher<dataspeed_ulc_msgs::msg::UlcCmd>::SharedPtr pub_ulc_cmd_;
     // To dbwNode
-    rclcpp::Publisher<dbw_fca_msgs::msg::MiscCmd>::SharedPtr pub_turn_indicators_cmd_;
-    rclcpp::Publisher<dbw_fca_msgs::msg::MiscCmd>::SharedPtr pub_hazard_lights_cmd_;
+    rclcpp::Publisher<dbw_fca_msgs::msg::MiscCmd>::SharedPtr pub_misc_cmd_;
+    // rclcpp::Publisher<dbw_fca_msgs::msg::MiscCmd>::SharedPtr pub_hazard_lights_cmd_;
 
 
     // To Autoware
@@ -237,17 +238,21 @@ private:
     dataspeed_ulc_msgs::msg::UlcReport::ConstSharedPtr sub_ulc_rpt_ptr_;
     dbw_fca_msgs::msg::BrakeReport::ConstSharedPtr sub_brake_ptr_;
     dataspeed_ulc_msgs::msg::UlcCmd ulc_cmd_;
-    dbw_fca_msgs::msg::MiscCmd misc_cmd_;
+    dbw_fca_msgs::msg::MiscCmd turn_indicators_misc_cmd_;
+    dbw_fca_msgs::msg::MiscCmd hazard_lights_misc_cmd_;
 
     bool is_emergency_{false};
     rclcpp::Time control_command_received_time_;
-    rclcpp::Time misc_command_received_time_;
+    rclcpp::Time turn_indicators_misc_command_received_time_;
+    rclcpp::Time hazard_lights_misc_command_received_time_;
 
    
     void callbackControlCmd(
         const autoware_control_msgs::msg::Control& msg);
     void callbackTurnIndicatorsCmd(
         const TurnIndicatorsCommand& turning_indicators_cmd);
+    void callbackHazardLightsCmd(
+        const HazardLightsCommand& hazard_lights_cmd);
     void callbackBrakeRpt(const dbw_fca_msgs::msg::BrakeReport::ConstSharedPtr rpt);
     void callbackInterface(
         const dbw_fca_msgs::msg::SteeringReport::ConstSharedPtr steering_rpt,
