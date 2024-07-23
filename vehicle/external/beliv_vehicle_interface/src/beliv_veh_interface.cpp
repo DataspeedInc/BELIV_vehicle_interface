@@ -85,7 +85,7 @@ BelivVehInterface::BelivVehInterface()
   //sub_manual_gear_cmd_ = create_subscription<GearCommand>("input/manual_gear_command", QoS{1},[this](const GearCommand::SharedPtr msg) { current_manual_gear_cmd_ = *msg; });
 
   sub_turn_indicators_cmd_ = create_subscription<TurnIndicatorsCommand>("/control/command/turn_indicators_cmd", 1,std::bind(&BelivVehInterface::callbackTurnIndicatorsCmd, this, _1));
-  sub_hazard_lights_cmd_ = create_subscription<HazardLightsCommand>("/control/command/hazard_lights_command", 1,std::bind(&BelivVehInterface::callbackHazardLightsCmd, this, _1));
+  sub_hazard_lights_cmd_ = create_subscription<HazardLightsCommand>("/control/command/hazard_lights_cmd", 1,std::bind(&BelivVehInterface::callbackHazardLightsCmd, this, _1));
  
   sub_emergency_ = create_subscription<tier4_vehicle_msgs::msg::VehicleEmergencyStamped>(
     "/control/command/emergency_cmd", 1,
@@ -500,9 +500,11 @@ void BelivVehInterface::publishCommands(){
     );
   } */
   if (publish_turn_indicators_ == true) {
+    RCLCPP_INFO(get_logger(), "publish_turn_indicators_ = true");
     pub_misc_cmd_->publish(turn_indicators_misc_cmd_);
   }
   else {
+    RCLCPP_INFO(get_logger(), "publish_turn_indicators_ = false");
     pub_misc_cmd_->publish(hazard_lights_misc_cmd_);
   }
   
