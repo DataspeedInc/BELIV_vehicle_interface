@@ -85,7 +85,7 @@ BelivVehInterface::BelivVehInterface()
   //sub_manual_gear_cmd_ = create_subscription<GearCommand>("input/manual_gear_command", QoS{1},[this](const GearCommand::SharedPtr msg) { current_manual_gear_cmd_ = *msg; });
 
   sub_turn_indicators_cmd_ = create_subscription<TurnIndicatorsCommand>("/control/command/turn_indicators_cmd", 1,std::bind(&BelivVehInterface::callbackTurnIndicatorsCmd, this, _1));
-  sub_hazard_lights_cmd_ = create_subscription<HazardLightsCommand>("/control/command/hazard_lights_cmd", 1,std::bind(&BelivVehInterface::callbackHazardLightsCmd, this, _1));
+  // sub_hazard_lights_cmd_ = create_subscription<HazardLightsCommand>("/control/command/hazard_lights_cmd", 1,std::bind(&BelivVehInterface::callbackHazardLightsCmd, this, _1));
  
   sub_emergency_ = create_subscription<tier4_vehicle_msgs::msg::VehicleEmergencyStamped>(
     "/control/command/emergency_cmd", 1,
@@ -370,53 +370,53 @@ void BelivVehInterface::callbackTurnIndicatorsCmd(
   turn_indicators_misc_cmd_.fr_vented_seat.value = 0;
 }
 
-void BelivVehInterface::callbackHazardLightsCmd(
-  const HazardLightsCommand& hazard_lights_cmd)
-  {
-    // set flag for publishing turning indicators
-    // publish_turn_indicators_ = false;
+// void BelivVehInterface::callbackHazardLightsCmd(
+//   const HazardLightsCommand& hazard_lights_cmd)
+//   {
+//     // set flag for publishing turning indicators
+//     // publish_turn_indicators_ = false;
 
-    hazard_lights_misc_command_received_time_ = this->now();
-    hazard_lights_misc_cmd_.header.frame_id = base_frame_id_;
-    hazard_lights_misc_cmd_.header.stamp = get_clock()->now();
+//     hazard_lights_misc_command_received_time_ = this->now();
+//     hazard_lights_misc_cmd_.header.frame_id = base_frame_id_;
+//     hazard_lights_misc_cmd_.header.stamp = get_clock()->now();
 
     
-    if (hazard_lights_cmd.command == HazardLightsCommand::ENABLE) {
-      publish_turn_indicators_ = false;
-      hazard_lights_misc_cmd_.cmd.value = dbw_fca_msgs::msg::TurnSignal::HAZARD;
-    }
-    else if (hazard_lights_cmd.command == HazardLightsCommand::DISABLE) {
-      publish_turn_indicators_ = true;
-      hazard_lights_misc_cmd_.cmd.value = dbw_fca_msgs::msg::TurnSignal::NONE;
-    }
-    else if (hazard_lights_cmd.command == HazardLightsCommand::NO_COMMAND) {
-      publish_turn_indicators_ = true;
-      hazard_lights_misc_cmd_.cmd.value = dbw_fca_msgs::msg::TurnSignal::NONE;
-    }
+//     if (hazard_lights_cmd.command == HazardLightsCommand::ENABLE) {
+//       publish_turn_indicators_ = false;
+//       hazard_lights_misc_cmd_.cmd.value = dbw_fca_msgs::msg::TurnSignal::HAZARD;
+//     }
+//     else if (hazard_lights_cmd.command == HazardLightsCommand::DISABLE) {
+//       publish_turn_indicators_ = true;
+//       hazard_lights_misc_cmd_.cmd.value = dbw_fca_msgs::msg::TurnSignal::NONE;
+//     }
+//     else if (hazard_lights_cmd.command == HazardLightsCommand::NO_COMMAND) {
+//       publish_turn_indicators_ = true;
+//       hazard_lights_misc_cmd_.cmd.value = dbw_fca_msgs::msg::TurnSignal::NONE;
+//     }
 
-    // Set other fields to default values
-    hazard_lights_misc_cmd_.door.header.stamp = hazard_lights_misc_cmd_.header.stamp;
-    hazard_lights_misc_cmd_.door.select = 0;
-    hazard_lights_misc_cmd_.door.action = 0;
-    hazard_lights_misc_cmd_.ft_drv_temp.value = 0;
-    hazard_lights_misc_cmd_.ft_psg_temp.value = 0;
-    hazard_lights_misc_cmd_.ft_fan_speed.value = 0;
-    hazard_lights_misc_cmd_.max_ac.cmd = 0;
-    hazard_lights_misc_cmd_.ac.cmd = 0;
-    hazard_lights_misc_cmd_.ft_hvac.cmd = 0;
-    hazard_lights_misc_cmd_.auto_md.cmd = 0;
-    hazard_lights_misc_cmd_.recirc.cmd = 0;
-    hazard_lights_misc_cmd_.sync.cmd = 0;
-    hazard_lights_misc_cmd_.r_defr.cmd = 0;
-    hazard_lights_misc_cmd_.f_defr.cmd = 0;
-    hazard_lights_misc_cmd_.vent_mode.value = 0;
-    hazard_lights_misc_cmd_.heated_steering_wheel.cmd = 0;
-    hazard_lights_misc_cmd_.fl_heated_seat.value = 0;
-    hazard_lights_misc_cmd_.fr_heated_seat.value = 0;
-    hazard_lights_misc_cmd_.fl_vented_seat.value = 0;
-    hazard_lights_misc_cmd_.fr_vented_seat.value = 0;
+//     // Set other fields to default values
+//     hazard_lights_misc_cmd_.door.header.stamp = hazard_lights_misc_cmd_.header.stamp;
+//     hazard_lights_misc_cmd_.door.select = 0;
+//     hazard_lights_misc_cmd_.door.action = 0;
+//     hazard_lights_misc_cmd_.ft_drv_temp.value = 0;
+//     hazard_lights_misc_cmd_.ft_psg_temp.value = 0;
+//     hazard_lights_misc_cmd_.ft_fan_speed.value = 0;
+//     hazard_lights_misc_cmd_.max_ac.cmd = 0;
+//     hazard_lights_misc_cmd_.ac.cmd = 0;
+//     hazard_lights_misc_cmd_.ft_hvac.cmd = 0;
+//     hazard_lights_misc_cmd_.auto_md.cmd = 0;
+//     hazard_lights_misc_cmd_.recirc.cmd = 0;
+//     hazard_lights_misc_cmd_.sync.cmd = 0;
+//     hazard_lights_misc_cmd_.r_defr.cmd = 0;
+//     hazard_lights_misc_cmd_.f_defr.cmd = 0;
+//     hazard_lights_misc_cmd_.vent_mode.value = 0;
+//     hazard_lights_misc_cmd_.heated_steering_wheel.cmd = 0;
+//     hazard_lights_misc_cmd_.fl_heated_seat.value = 0;
+//     hazard_lights_misc_cmd_.fr_heated_seat.value = 0;
+//     hazard_lights_misc_cmd_.fl_vented_seat.value = 0;
+//     hazard_lights_misc_cmd_.fr_vented_seat.value = 0;
 
-  }
+//   }
 
 
 void BelivVehInterface::callbackBrakeRpt(
@@ -499,15 +499,15 @@ void BelivVehInterface::publishCommands(){
       sub_steering_ptr_ !=nullptr, sub_gear_ptr_!=nullptr, sub_misc1_ptr_!=nullptr, sub_ulc_rpt_ptr_!=nullptr
     );
   } */
-  if (publish_turn_indicators_ == true) {
-    RCLCPP_INFO(get_logger(), "publish_turn_indicators_ = true");
-    pub_misc_cmd_->publish(turn_indicators_misc_cmd_);
-  }
-  else {
-    RCLCPP_INFO(get_logger(), "publish_turn_indicators_ = false");
-    pub_misc_cmd_->publish(hazard_lights_misc_cmd_);
-  }
-  
+  // if (publish_turn_indicators_ == true) {
+  //   RCLCPP_INFO(get_logger(), "publish_turn_indicators_ = true");
+  //   pub_misc_cmd_->publish(turn_indicators_misc_cmd_);
+  // }
+  // else {
+  //   RCLCPP_INFO(get_logger(), "publish_turn_indicators_ = false");
+  //   pub_misc_cmd_->publish(hazard_lights_misc_cmd_);
+  // }
+  pub_misc_cmd_->publish(turn_indicators_misc_cmd_);
   pub_ulc_cmd_->publish(ulc_cmd_);
 
 }

@@ -125,7 +125,7 @@ public:
     using ActuationStatusStamped = tier4_vehicle_msgs::msg::ActuationStatusStamped;
     using SteeringWheelStatusStamped = tier4_vehicle_msgs::msg::SteeringWheelStatusStamped;
     using ControlModeCommand = autoware_vehicle_msgs::srv::ControlModeCommand;
-    using HazardLightsCommand = autoware_vehicle_msgs::msg::HazardLightsCommand;
+    // using HazardLightsCommand = autoware_vehicle_msgs::msg::HazardLightsCommand;
     using TurnIndicatorsCommand = autoware_vehicle_msgs::msg::TurnIndicatorsCommand;
     BelivVehInterface();
 
@@ -143,7 +143,7 @@ private:
     bool is_dbw_rpt_received_ = false;
     bool is_clear_override_needed_ = false;
     bool prev_override_ = false;
-    bool publish_turn_indicators_ = true;
+    // bool publish_turn_indicators_ = true;
     double loop_rate_;           // [Hz]
     double wheel_base_;
     double steering_ratio_;
@@ -156,8 +156,8 @@ private:
     rclcpp::Subscription<autoware_vehicle_msgs::msg::GearCommand>::SharedPtr sub_gear_cmd_;
     rclcpp::Subscription<TurnIndicatorsCommand>::SharedPtr
         sub_turn_indicators_cmd_;
-    rclcpp::Subscription<HazardLightsCommand>::SharedPtr
-        sub_hazard_lights_cmd_;
+    // rclcpp::Subscription<HazardLightsCommand>::SharedPtr
+    //     sub_hazard_lights_cmd_;
     //rclcpp::Subscription<ActuationCommandStamped>::SharedPtr sub_actuation_cmd_;
     rclcpp::Subscription<tier4_vehicle_msgs::msg::VehicleEmergencyStamped>::SharedPtr sub_emergency_;
     
@@ -239,20 +239,20 @@ private:
     dbw_fca_msgs::msg::BrakeReport::ConstSharedPtr sub_brake_ptr_;
     dataspeed_ulc_msgs::msg::UlcCmd ulc_cmd_;
     dbw_fca_msgs::msg::MiscCmd turn_indicators_misc_cmd_;
-    dbw_fca_msgs::msg::MiscCmd hazard_lights_misc_cmd_;
+    // dbw_fca_msgs::msg::MiscCmd hazard_lights_misc_cmd_;
 
     bool is_emergency_{false};
     rclcpp::Time control_command_received_time_;
     rclcpp::Time turn_indicators_misc_command_received_time_;
-    rclcpp::Time hazard_lights_misc_command_received_time_;
+    // rclcpp::Time hazard_lights_misc_command_received_time_;
 
    
     void callbackControlCmd(
         const autoware_control_msgs::msg::Control& msg);
     void callbackTurnIndicatorsCmd(
         const TurnIndicatorsCommand& turning_indicators_cmd);
-    void callbackHazardLightsCmd(
-        const HazardLightsCommand& hazard_lights_cmd);
+    // void callbackHazardLightsCmd(
+    //     const HazardLightsCommand& hazard_lights_cmd);
     void callbackBrakeRpt(const dbw_fca_msgs::msg::BrakeReport::ConstSharedPtr rpt);
     void callbackInterface(
         const dbw_fca_msgs::msg::SteeringReport::ConstSharedPtr steering_rpt,
