@@ -44,8 +44,8 @@ BelivVehInterface::BelivVehInterface()
   base_frame_id_ = declare_parameter("base_frame_id", "base_link");   //Frame ID
   command_timeout_ms_ = declare_parameter("command_timeout_ms", 1000);
   loop_rate_ = declare_parameter("loop_rate", 50.0);
-  wheel_base_ = 2.98;
-  steering_ratio_ = 14.6;
+  wheel_base_ = declare_parameter("wheel_base", 3.08);
+  steering_ratio_ = declare_parameter("steering_ratio", 16.2);
 
   /* subscriber */
   using std::placeholders::_1;
