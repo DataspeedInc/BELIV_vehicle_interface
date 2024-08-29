@@ -26,6 +26,8 @@
   <depend>can_msgs</depend>
   <depend>message_filters</depend>
   <depend>autoware_vehicle_info_utils</depend>
+  <depend>ds_dbw_msgs</depend>
+  <depend>ds_dbw_can</depend>
   
   
   <build_depend>ament_cmake</build_depend>

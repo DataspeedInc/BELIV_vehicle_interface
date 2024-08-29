@@ -40,26 +40,25 @@
 
 // Messages
 #include <can_msgs/msg/frame.hpp>
-#include <dbw_fca_msgs/msg/brake_cmd.hpp>
-#include <dbw_fca_msgs/msg/brake_info_report.hpp>
-#include <dbw_fca_msgs/msg/brake_report.hpp>
-// #include <dbw_fca_msgs/msg/driver_assist_report.hpp>
-#include <dbw_fca_msgs/msg/fuel_level_report.hpp>
-#include <dbw_fca_msgs/msg/gear_cmd.hpp>
-#include <dbw_fca_msgs/msg/gear_report.hpp>
-#include <dbw_fca_msgs/msg/misc_cmd.hpp>
-#include <dbw_fca_msgs/msg/misc1_report.hpp>
-#include <dbw_fca_msgs/msg/steering_cmd.hpp>
-#include <dbw_fca_msgs/msg/steering_report.hpp>
-#include <dbw_fca_msgs/msg/misc_cmd.hpp>
-// #include <dbw_fca_msgs/msg/surround_report.hpp>
-#include <dbw_fca_msgs/msg/throttle_cmd.hpp>
-#include <dbw_fca_msgs/msg/throttle_info_report.hpp>
-#include <dbw_fca_msgs/msg/throttle_report.hpp>
-#include <dbw_fca_msgs/msg/tire_pressure_report.hpp>
-#include <dbw_fca_msgs/msg/turn_signal.hpp>
-#include <dbw_fca_msgs/msg/wheel_position_report.hpp>
-#include <dbw_fca_msgs/msg/wheel_speed_report.hpp>
+#include <ds_dbw_msgs/msg/brake_cmd.hpp>
+#include <ds_dbw_msgs/msg/brake_info.hpp>
+#include <ds_dbw_msgs/msg/brake_report.hpp>
+// #include <ds_dbw_msgs/msg/driver_assist_report.hpp>
+// #include <ds_dbw_msgs/msg/fuel_level_report.hpp>
+#include <ds_dbw_msgs/msg/gear_cmd.hpp>
+#include <ds_dbw_msgs/msg/gear_report.hpp>
+#include <ds_dbw_msgs/msg/misc_cmd.hpp>
+#include <ds_dbw_msgs/msg/misc_report.hpp>
+#include <ds_dbw_msgs/msg/steering_cmd.hpp>
+#include <ds_dbw_msgs/msg/steering_report.hpp>
+// #include <ds_dbw_msgs/msg/surround_report.hpp>
+#include <ds_dbw_msgs/msg/throttle_cmd.hpp>
+#include <ds_dbw_msgs/msg/throttle_info.hpp>
+#include <ds_dbw_msgs/msg/throttle_report.hpp>
+#include <ds_dbw_msgs/msg/tire_pressures.hpp>
+#include <ds_dbw_msgs/msg/turn_signal.hpp>
+#include <ds_dbw_msgs/msg/wheel_positions.hpp>
+#include <ds_dbw_msgs/msg/wheel_speeds.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
@@ -67,8 +66,8 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/msg/time_reference.hpp>
 #include <std_msgs/msg/empty.hpp>
-#include <dataspeed_ulc_msgs/msg/ulc_cmd.hpp>
-#include <dataspeed_ulc_msgs/msg/ulc_report.hpp>
+#include <ds_dbw_msgs/msg/ulc_cmd.hpp>
+#include <ds_dbw_msgs/msg/ulc_report.hpp>
 
 
 
@@ -117,7 +116,7 @@
 #include <string>
 
 
-namespace dbw_fca_can { 
+namespace ds_dbw_can { 
 class BelivVehInterface : public rclcpp::Node
 {
 public:
@@ -132,8 +131,8 @@ public:
 private:
 
     typedef message_filters::sync_policies::ApproximateTime<
-        dbw_fca_msgs::msg::SteeringReport, dbw_fca_msgs::msg::GearReport,
-        dbw_fca_msgs::msg::Misc1Report, dataspeed_ulc_msgs::msg::UlcReport>
+        ds_dbw_msgs::msg::SteeringReport, ds_dbw_msgs::msg::GearReport,
+        ds_dbw_msgs::msg::MiscReport, ds_dbw_msgs::msg::UlcReport>
         BelivFeedbacksSyncPolicy; 
 
     /* parameters */
@@ -163,20 +162,20 @@ private:
     
     // from dbwNode
     rclcpp::Subscription<can_msgs::msg::Frame>::SharedPtr sub_can_;
-    rclcpp::Subscription<dbw_fca_msgs::msg::BrakeReport>::SharedPtr sub_brake_;
-    rclcpp::Subscription<dbw_fca_msgs::msg::ThrottleReport>::SharedPtr sub_throttle_;
-    std::unique_ptr<message_filters::Subscriber<dbw_fca_msgs::msg::SteeringReport>> sub_steering_;
-    std::unique_ptr<message_filters::Subscriber<dbw_fca_msgs::msg::GearReport>> sub_gear_;
-    std::unique_ptr<message_filters::Subscriber<dbw_fca_msgs::msg::Misc1Report>> sub_misc_1_;
-    rclcpp::Subscription<dbw_fca_msgs::msg::WheelSpeedReport>::SharedPtr sub_wheel_speeds_;
-    rclcpp::Subscription<dbw_fca_msgs::msg::WheelPositionReport>::SharedPtr sub_wheel_positions_;
-    rclcpp::Subscription<dbw_fca_msgs::msg::TirePressureReport>::SharedPtr sub_tire_pressure_;
-    rclcpp::Subscription<dbw_fca_msgs::msg::FuelLevelReport>::SharedPtr sub_fuel_level_;
-    // rclcpp::Subscription<dbw_fca_msgs::msg::SurroundReport>::SharedPtr sub_surround_;
+    rclcpp::Subscription<ds_dbw_msgs::msg::BrakeReport>::SharedPtr sub_brake_;
+    rclcpp::Subscription<ds_dbw_msgs::msg::ThrottleReport>::SharedPtr sub_throttle_;
+    std::unique_ptr<message_filters::Subscriber<ds_dbw_msgs::msg::SteeringReport>> sub_steering_;
+    std::unique_ptr<message_filters::Subscriber<ds_dbw_msgs::msg::GearReport>> sub_gear_;
+    std::unique_ptr<message_filters::Subscriber<ds_dbw_msgs::msg::MiscReport>> sub_misc_1_;
+    rclcpp::Subscription<ds_dbw_msgs::msg::WheelSpeeds>::SharedPtr sub_wheel_speeds_;
+    rclcpp::Subscription<ds_dbw_msgs::msg::WheelPositions>::SharedPtr sub_wheel_positions_;
+    rclcpp::Subscription<ds_dbw_msgs::msg::TirePressures>::SharedPtr sub_tire_pressure_;
+    // rclcpp::Subscription<ds_dbw_msgs::msg::FuelLevelReport>::SharedPtr sub_fuel_level_;
+    // rclcpp::Subscription<ds_dbw_msgs::msg::SurroundReport>::SharedPtr sub_surround_;
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr sub_sonar_cloud_;
-    rclcpp::Subscription<dbw_fca_msgs::msg::BrakeInfoReport>::SharedPtr sub_brake_info_;
-    rclcpp::Subscription<dbw_fca_msgs::msg::ThrottleInfoReport>::SharedPtr sub_throttle_info_;
-    // rclcpp::Subscription<dbw_fca_msgs::msg::DriverAssistReport>::SharedPtr sub_driver_assist_;
+    rclcpp::Subscription<ds_dbw_msgs::msg::BrakeInfo>::SharedPtr sub_brake_info_;
+    rclcpp::Subscription<ds_dbw_msgs::msg::ThrottleInfo>::SharedPtr sub_throttle_info_;
+    // rclcpp::Subscription<ds_dbw_msgs::msg::DriverAssistReport>::SharedPtr sub_driver_assist_;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_imu_;
     rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr sub_gps_fix_;
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr sub_gps_vel_;
@@ -188,17 +187,18 @@ private:
     rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr sub_enable_;
 
     // from UlcNode
-    std::unique_ptr<message_filters::Subscriber<dataspeed_ulc_msgs::msg::UlcReport>> sub_ulc_rpt_;
-    //rclcpp::Subscription<dataspeed_ulc_msgs::UlcReport>::SharedPtr sub_ulc_rpt;
+    std::unique_ptr<message_filters::Subscriber<ds_dbw_msgs::msg::UlcReport>> sub_ulc_rpt_;
+    //rclcpp::Subscription<ds_dbw_msgs::UlcReport>::SharedPtr sub_ulc_rpt;
 
     std::unique_ptr<message_filters::Synchronizer<BelivFeedbacksSyncPolicy>> beliv_feedbacks_sync_;
     
     /* Publisher */
     // To UlcNode
-    rclcpp::Publisher<dataspeed_ulc_msgs::msg::UlcCmd>::SharedPtr pub_ulc_cmd_;
+    rclcpp::Publisher<ds_dbw_msgs::msg::UlcCmd>::SharedPtr pub_ulc_cmd_;
     // To dbwNode
-    rclcpp::Publisher<dbw_fca_msgs::msg::MiscCmd>::SharedPtr pub_misc_cmd_;
-    // rclcpp::Publisher<dbw_fca_msgs::msg::MiscCmd>::SharedPtr pub_hazard_lights_cmd_;
+    rclcpp::Publisher<ds_dbw_msgs::msg::SteeringCmd>::SharedPtr pub_steering_cmd_;
+    rclcpp::Publisher<ds_dbw_msgs::msg::MiscCmd>::SharedPtr pub_misc_cmd_;
+    // rclcpp::Publisher<ds_dbw_msgs::msg::MiscCmd>::SharedPtr pub_hazard_lights_cmd_;
 
 
     // To Autoware
@@ -223,7 +223,7 @@ private:
     //tier4_api_utils::Service<tier4_external_api_msgs::srv::SetDoor>::SharedPtr srv_;
     rclcpp::Service<ControlModeCommand>::SharedPtr control_mode_server_;
 
-    //dataspeed_ulc_msgs::msg::UlcCmd ulc_cmd_;
+    //ds_dbw_msgs::msg::UlcCmd ulc_cmd_;
 
       /* input values */
     ActuationCommandStamped::ConstSharedPtr actuation_cmd_ptr_;
@@ -232,14 +232,15 @@ private:
     autoware_vehicle_msgs::msg::HazardLightsCommand::ConstSharedPtr hazard_lights_cmd_ptr_;
     autoware_vehicle_msgs::msg::GearCommand::ConstSharedPtr gear_cmd_ptr_;
  
-    dbw_fca_msgs::msg::SteeringReport::ConstSharedPtr sub_steering_ptr_;
-    dbw_fca_msgs::msg::GearReport::ConstSharedPtr sub_gear_ptr_;
-    dbw_fca_msgs::msg::Misc1Report::ConstSharedPtr sub_misc1_ptr_;
-    dataspeed_ulc_msgs::msg::UlcReport::ConstSharedPtr sub_ulc_rpt_ptr_;
-    dbw_fca_msgs::msg::BrakeReport::ConstSharedPtr sub_brake_ptr_;
-    dataspeed_ulc_msgs::msg::UlcCmd ulc_cmd_;
-    dbw_fca_msgs::msg::MiscCmd turn_indicators_misc_cmd_;
-    // dbw_fca_msgs::msg::MiscCmd hazard_lights_misc_cmd_;
+    ds_dbw_msgs::msg::SteeringReport::ConstSharedPtr sub_steering_ptr_;
+    ds_dbw_msgs::msg::GearReport::ConstSharedPtr sub_gear_ptr_;
+    ds_dbw_msgs::msg::MiscReport::ConstSharedPtr sub_misc_ptr_;
+    ds_dbw_msgs::msg::UlcReport::ConstSharedPtr sub_ulc_rpt_ptr_;
+    ds_dbw_msgs::msg::BrakeReport::ConstSharedPtr sub_brake_ptr_;
+    ds_dbw_msgs::msg::UlcCmd ulc_cmd_;
+    ds_dbw_msgs::msg::SteeringCmd steering_cmd_;
+    ds_dbw_msgs::msg::MiscCmd turn_indicators_misc_cmd_;
+    // ds_dbw_msgs::msg::MiscCmd hazard_lights_misc_cmd_;
 
     bool is_emergency_{false};
     rclcpp::Time control_command_received_time_;
@@ -253,15 +254,15 @@ private:
         const TurnIndicatorsCommand& turning_indicators_cmd);
     // void callbackHazardLightsCmd(
     //     const HazardLightsCommand& hazard_lights_cmd);
-    void callbackBrakeRpt(const dbw_fca_msgs::msg::BrakeReport::ConstSharedPtr rpt);
+    void callbackBrakeRpt(const ds_dbw_msgs::msg::BrakeReport::ConstSharedPtr rpt);
     void callbackInterface(
-        const dbw_fca_msgs::msg::SteeringReport::ConstSharedPtr steering_rpt,
-        const dbw_fca_msgs::msg::GearReport::ConstSharedPtr gear_rpt,
-        const dbw_fca_msgs::msg::Misc1Report::ConstSharedPtr misc1_rpt,
-        const dataspeed_ulc_msgs::msg::UlcReport::ConstSharedPtr ulc_rpt);
-    int32_t toAutowareShiftReport(const dbw_fca_msgs::msg::GearReport& gear_rpt);
-    int32_t toAutowareTurnIndicatorsReport(const dbw_fca_msgs::msg::Misc1Report &misc1_rpt);
-    int32_t toAutowareHazardLightsReport(const dbw_fca_msgs::msg::Misc1Report &misc1_rpt);
+        const ds_dbw_msgs::msg::SteeringReport::ConstSharedPtr steering_rpt,
+        const ds_dbw_msgs::msg::GearReport::ConstSharedPtr gear_rpt,
+        const ds_dbw_msgs::msg::MiscReport::ConstSharedPtr misc_rpt,
+        const ds_dbw_msgs::msg::UlcReport::ConstSharedPtr ulc_rpt);
+    int32_t toAutowareShiftReport(const ds_dbw_msgs::msg::GearReport& gear_rpt);
+    int32_t toAutowareTurnIndicatorsReport(const ds_dbw_msgs::msg::MiscReport &misc_rpt);
+    int32_t toAutowareHazardLightsReport(const ds_dbw_msgs::msg::MiscReport &misc_rpt);
     void onControlModeRequest(
         const ControlModeCommand::Request::SharedPtr request,
         const ControlModeCommand::Response::SharedPtr response);

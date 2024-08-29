@@ -23,6 +23,8 @@ find_package(autoware_vehicle_msgs REQUIRED)
 find_package(can_msgs REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(autoware_vehicle_info_utils REQUIRED)
+find_package(ds_dbw_msgs REQUIRED)
+find_package(ds_dbw_can REQUIRED)
 # find_package(ament_cmake REQUIRED)
 
 # ament_auto_find_build_dependencies()
@@ -58,6 +60,8 @@ ament_target_dependencies(beliv_veh_interface
   "can_msgs"
   "message_filters"
   "autoware_vehicle_info_utils"
+  "ds_dbw_msgs"
+  "ds_dbw_can"
 )
 
 # if(BUILD_TESTING)
