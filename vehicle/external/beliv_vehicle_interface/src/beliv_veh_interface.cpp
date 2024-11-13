@@ -99,7 +99,7 @@ BelivVehInterface::BelivVehInterface()
 
   //from DbwNode
   sub_enable_ = create_subscription<std_msgs::msg::Bool>("/vehicle/dbw_enabled", rclcpp::QoS(2).transient_local(),
-    std::bind(&BelivVehInterface::recvDbwEnabled, this, _1));   
+    std::bind(&BelivVehInterface::recvDbwEnabled, this, _1));
 
   //synchronizer
   beliv_feedbacks_sync_ =
@@ -291,17 +291,17 @@ void BelivVehInterface::callbackControlCmd(
   ulc_cmd_.header.frame_id = base_frame_id_;
   ulc_cmd_.header.stamp = get_clock()->now();
   // Populate command fields
-  ulc_cmd_.pedals_mode = dataspeed_ulc_msgs::msg::UlcCmd::ACCEL_MODE;
+  ulc_cmd_.pedals_mode = dataspeed_ulc_msgs::msg::UlcCmd::SPEED_MODE;
 
-  // if (msg.longitudinal.velocity  < -0.2352) {
-  //   ulc_cmd_.steering_mode = dataspeed_ulc_msgs::msg::UlcCmd::YAW_RATE_MODE;
-  // }
-  // else if (msg.longitudinal.velocity < 0.2352) {
-  //   ulc_cmd_.steering_mode = dataspeed_ulc_msgs::msg::UlcCmd::CURVATURE_MODE;
-  // }
-  // else {
-  //   ulc_cmd_.steering_mode = dataspeed_ulc_msgs::msg::UlcCmd::YAW_RATE_MODE;
-  // }
+  if (msg.longitudinal.velocity  < -0.2352) {
+    ulc_cmd_.steering_mode = dataspeed_ulc_msgs::msg::UlcCmd::YAW_RATE_MODE;
+  }
+  else if (msg.longitudinal.velocity < 0.2352) {
+    ulc_cmd_.steering_mode = dataspeed_ulc_msgs::msg::UlcCmd::CURVATURE_MODE;
+  }
+  else {
+    ulc_cmd_.steering_mode = dataspeed_ulc_msgs::msg::UlcCmd::YAW_RATE_MODE;
+  }
   // if ( msg.longitudinal.velocity < -0.5) {
   //   ulc_cmd_.linear_velocity = msg.longitudinal.velocity;
   // } else if (msg.longitudinal.velocity < -0.001) {
@@ -314,15 +314,15 @@ void BelivVehInterface::callbackControlCmd(
   //   ulc_cmd_.linear_velocity = msg.longitudinal.velocity;
   // }
 
-  ulc_cmd_.accel_cmd = msg.longitudinal.acceleration;
-  // if (ulc_cmd_.steering_mode == dataspeed_ulc_msgs::msg::UlcCmd::YAW_RATE_MODE) {
-  //   ulc_cmd_.yaw_command = sub_steering_ptr_->speed* tan(msg.lateral.steering_tire_angle)/wheel_base_;
-  // }
-  // else {
-  //   ulc_cmd_.yaw_command = std::atan(msg.lateral.steering_tire_angle/steering_ratio_);
-  // }
-  ulc_cmd_.yaw_command = sub_steering_ptr_->speed* tan(msg.lateral.steering_tire_angle)/wheel_base_;
-  ulc_cmd_.steering_mode = dataspeed_ulc_msgs::msg::UlcCmd::YAW_RATE_MODE;
+  ulc_cmd_.linear_velocity = msg.longitudinal.velocity;
+  if (ulc_cmd_.steering_mode == dataspeed_ulc_msgs::msg::UlcCmd::YAW_RATE_MODE) {
+    ulc_cmd_.yaw_command = sub_steering_ptr_->speed* tan(msg.lateral.steering_tire_angle)/wheel_base_;
+  }
+  else {
+    ulc_cmd_.yaw_command = std::atan(msg.lateral.steering_tire_angle/steering_ratio_);
+  }
+  // ulc_cmd_.yaw_command = sub_steering_ptr_->speed* tan(msg.lateral.steering_tire_angle)/wheel_base_;
+  // ulc_cmd_.steering_mode = dataspeed_ulc_msgs::msg::UlcCmd::YAW_RATE_MODE;
 
   // Set other fields to default values
   ulc_cmd_.clear = false;
