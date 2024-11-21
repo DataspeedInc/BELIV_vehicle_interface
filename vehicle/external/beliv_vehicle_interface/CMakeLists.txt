@@ -12,12 +12,12 @@ find_package(tier4_api_utils REQUIRED)
 find_package(tier4_debug_msgs REQUIRED)
 find_package(tier4_external_api_msgs REQUIRED)
 find_package(tier4_vehicle_msgs REQUIRED)
-find_package(dbw_fca_msgs REQUIRED)
+# find_package(dbw_fca_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(dataspeed_ulc_msgs REQUIRED)
-find_package(dataspeed_dbw_common REQUIRED)
+# find_package(dataspeed_ulc_msgs REQUIRED)
+# find_package(dataspeed_dbw_common REQUIRED)
 find_package(autoware_control_msgs REQUIRED)
 find_package(autoware_vehicle_msgs REQUIRED)
 find_package(can_msgs REQUIRED)
@@ -51,10 +51,10 @@ ament_target_dependencies(beliv_veh_interface
   "tier4_debug_msgs"
   "tier4_external_api_msgs"
   "tier4_vehicle_msgs"
-  "dbw_fca_msgs"
+  # "dbw_fca_msgs"
   "sensor_msgs"
-  "dataspeed_ulc_msgs"
-  "dataspeed_dbw_common"
+  # "dataspeed_ulc_msgs"
+  # "dataspeed_dbw_common"
   "autoware_control_msgs"
   "autoware_vehicle_msgs"
   "can_msgs"

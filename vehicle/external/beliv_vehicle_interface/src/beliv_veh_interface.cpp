@@ -47,20 +47,21 @@ BelivVehInterface::BelivVehInterface()
   wheel_base_ = declare_parameter("wheel_base", 3.08);
   steering_ratio_ = declare_parameter("steering_ratio", 16.2);
 
+ 
   /* subscriber */
   using std::placeholders::_1;
   using std::placeholders::_2;
 
   //from DbwNode
-  sub_brake_ = create_subscription<ds_dbw_msgs::msg::BrakeReport>("/vehicle/brake_report", rclcpp::QoS{2}, 
+  sub_brake_ = create_subscription<ds_dbw_msgs::msg::BrakeReport>("/vehicle/brake/report", rclcpp::QoS{2}, 
     std::bind(&BelivVehInterface::callbackBrakeRpt, this, _1));
 //sub_throttle_ = create_subscription<ds_dbw_msgs::msg::ThrottleReport>("/vehicle/throttle_report", 2);
   sub_steering_ = std::make_unique<message_filters::Subscriber<ds_dbw_msgs::msg::SteeringReport>>(
-    this, "/vehicle/steering_report");
+    this, "/vehicle/steering/report");
   sub_gear_ = std::make_unique<message_filters::Subscriber<ds_dbw_msgs::msg::GearReport>>(
-    this, "/vehicle/gear_report");
-  sub_misc_1_ = std::make_unique<message_filters::Subscriber<ds_dbw_msgs::msg::MiscReport>>(
-    this, "/vehicle/misc_1_report");
+    this, "/vehicle/gear/report");
+  sub_turn_signal_= std::make_unique<message_filters::Subscriber<ds_dbw_msgs::msg::TurnSignalReport>>(
+    this, "/vehicle/turn_signal/report");
 /*  sub_wheel_speeds_ = create_subscription<ds_dbw_msgs::msg::WheelSpeedReport>("/vehicle/wheel_speed_report", 2);
   sub_wheel_positions_ = create_subscription<ds_dbw_msgs::msg::WheelPositionReport>("/vehicle/wheel_position_report", 2);
   sub_tire_pressure_ = create_subscription<ds_dbw_msgs::msg::TirePressureReport>("/vehicle/tire_pressure_report", 2);
@@ -95,7 +96,7 @@ BelivVehInterface::BelivVehInterface()
 
   //from UlcNode
   sub_ulc_rpt_ = std::make_unique<message_filters::Subscriber<ds_dbw_msgs::msg::UlcReport>>(
-    this, "/vehicle/ulc_report");
+    this, "/vehicle/ulc/report");
 
   //from DbwNode
   sub_enable_ = create_subscription<std_msgs::msg::Bool>("/vehicle/dbw_enabled", rclcpp::QoS(2).transient_local(),
@@ -104,7 +105,7 @@ BelivVehInterface::BelivVehInterface()
   //synchronizer
   beliv_feedbacks_sync_ =
     std::make_unique<message_filters::Synchronizer<BelivFeedbacksSyncPolicy>>(
-    BelivFeedbacksSyncPolicy(10), *sub_steering_, *sub_gear_, *sub_misc_1_, *sub_ulc_rpt_);
+    BelivFeedbacksSyncPolicy(10), *sub_steering_, *sub_gear_, *sub_turn_signal_, *sub_ulc_rpt_);
   
   beliv_feedbacks_sync_->registerCallback(std::bind(
     &BelivVehInterface::callbackInterface, this, std::placeholders::_1, std::placeholders::_2,
@@ -112,12 +113,12 @@ BelivVehInterface::BelivVehInterface()
 
   /* publisher */
   //to UlcNode
-  pub_ulc_cmd_=create_publisher<ds_dbw_msgs::msg::UlcCmd>("/vehicle/ulc_cmd", 2);
-  pub_steering_cmd_ = create_publisher<ds_dbw_msgs::msg::SteeringCmd>("/vehicle/steering_cmd", 2);
-  pub_misc_cmd_ = create_publisher<ds_dbw_msgs::msg::MiscCmd>("/vehicle/misc_cmd", 2);
+  pub_ulc_cmd_=create_publisher<ds_dbw_msgs::msg::UlcCmd>("/vehicle/ulc/cmd", 2);
+  pub_steering_cmd_ = create_publisher<ds_dbw_msgs::msg::SteeringCmd>("/vehicle/steering/cmd", 2);
+  pub_turn_signal_cmd_ = create_publisher<ds_dbw_msgs::msg::TurnSignalCmd>("/vehicle/turn_signal/cmd", 2);
   // pub_hazard_lights_cmd_ = create_publisher<ds_dbw_msgs::msg::MiscCmd>("/vehicle/hazard_lights_cmd", 2);
   // //to DbwNode
-  // pub_turn_indicators_cmd_ = create_publisher<ds_dbw_msgs::msg::MiscCmd>(
+  // pub_turn_signal_cmd_ = create_publisher<ds_dbw_msgs::msg::MiscCmd>(
     
   // )
 
@@ -150,12 +151,13 @@ BelivVehInterface::BelivVehInterface()
   timer_ = rclcpp::create_timer(
     this, get_clock(), period_ns, std::bind(&BelivVehInterface::publishCommands, this));
 
+  RCLCPP_INFO_ONCE(get_logger(), "BelivVehInterface is ready.");
 }
 
 void BelivVehInterface::callbackInterface(
   const ds_dbw_msgs::msg::SteeringReport::ConstSharedPtr steering_rpt,
   const ds_dbw_msgs::msg::GearReport::ConstSharedPtr gear_rpt,
-  const ds_dbw_msgs::msg::MiscReport::ConstSharedPtr misc_rpt,
+  const ds_dbw_msgs::msg::TurnSignalReport::ConstSharedPtr turn_signal_rpt,
   const ds_dbw_msgs::msg::UlcReport::ConstSharedPtr ulc_rpt)
 {
 
@@ -168,7 +170,7 @@ void BelivVehInterface::callbackInterface(
   is_dbw_rpt_received_ = true;
   sub_steering_ptr_ = steering_rpt;
   sub_gear_ptr_ = gear_rpt;
-  sub_misc_ptr_ = misc_rpt;
+  sub_turn_signal_ptr_ = turn_signal_rpt;
   sub_ulc_rpt_ptr_ = ulc_rpt;
 
   const double current_velocity = sub_ulc_rpt_ptr_->vel_meas;  // current vehicle velocity [m/s]
@@ -248,12 +250,12 @@ void BelivVehInterface::callbackInterface(
   {
     autoware_vehicle_msgs::msg::TurnIndicatorsReport turn_msg;
     turn_msg.stamp = header.stamp;
-    turn_msg.report = toAutowareTurnIndicatorsReport(*sub_misc_ptr_);
+    turn_msg.report = toAutowareTurnIndicatorsReport(*sub_turn_signal_ptr_);
     pub_turn_indicators_status_->publish(turn_msg);
 
     autoware_vehicle_msgs::msg::HazardLightsReport hazard_msg;
     hazard_msg.stamp = header.stamp;
-    hazard_msg.report = toAutowareHazardLightsReport(*sub_misc_ptr_);
+    hazard_msg.report = toAutowareHazardLightsReport(*sub_turn_signal_ptr_);
     pub_hazard_lights_status_->publish(hazard_msg);
   }
 
@@ -292,17 +294,18 @@ void BelivVehInterface::callbackControlCmd(
   ulc_cmd_.header.frame_id = base_frame_id_;
   ulc_cmd_.header.stamp = get_clock()->now();
   // Populate command fields
-  ulc_cmd_.cmd_type = ds_dbw_msgs::msg::UlcCmd::CMD_ACCEL;
+  ulc_cmd_.cmd_type = ds_dbw_msgs::msg::UlcCmd::CMD_VELOCITY;
+  ulc_cmd_.enable = true;
 
-  // if (msg.longitudinal.velocity  < -0.2352) {
-  //   ulc_cmd_.steering_mode = ds_dbw_msgs::msg::UlcCmd::YAW_RATE_MODE;
-  // }
-  // else if (msg.longitudinal.velocity < 0.2352) {
-  //   ulc_cmd_.steering_mode = ds_dbw_msgs::msg::UlcCmd::CURVATURE_MODE;
-  // }
-  // else {
-  //   ulc_cmd_.steering_mode = ds_dbw_msgs::msg::UlcCmd::YAW_RATE_MODE;
-  // }
+  if (msg.longitudinal.velocity  < -0.2352) {
+    steering_cmd_.cmd_type = ds_dbw_msgs::msg::SteeringCmd::CMD_YAW_RATE;
+  }
+  else if (msg.longitudinal.velocity < 0.2352) {
+    steering_cmd_.cmd_type = ds_dbw_msgs::msg::SteeringCmd::CMD_CURVATURE;
+  }
+  else {
+    steering_cmd_.cmd_type = ds_dbw_msgs::msg::SteeringCmd::CMD_YAW_RATE;
+  }
   // if ( msg.longitudinal.velocity < -0.5) {
   //   ulc_cmd_.linear_velocity = msg.longitudinal.velocity;
   // } else if (msg.longitudinal.velocity < -0.001) {
@@ -315,15 +318,16 @@ void BelivVehInterface::callbackControlCmd(
   //   ulc_cmd_.linear_velocity = msg.longitudinal.velocity;
   // }
 
-  ulc_cmd_.cmd = msg.longitudinal.acceleration;
-  // if (ulc_cmd_.steering_mode == ds_dbw_msgs::msg::UlcCmd::YAW_RATE_MODE) {
-  //   ulc_cmd_.yaw_command = sub_steering_ptr_->speed* tan(msg.lateral.steering_tire_angle)/wheel_base_;
-  // }
-  // else {
-  //   ulc_cmd_.yaw_command = std::atan(msg.lateral.steering_tire_angle/steering_ratio_);
-  // }
-  steering_cmd_.cmd = sub_ulc_rpt_ptr_->vel_meas * tan(msg.lateral.steering_tire_angle)/wheel_base_;
-  steering_cmd_.cmd_type = ds_dbw_msgs::msg::SteeringCmd::CMD_YAW_RATE;
+  ulc_cmd_.cmd = msg.longitudinal.velocity;
+  if (steering_cmd_.cmd_type == ds_dbw_msgs::msg::SteeringCmd::CMD_YAW_RATE) {
+    steering_cmd_.cmd = sub_ulc_rpt_ptr_->vel_meas * tan(msg.lateral.steering_tire_angle)/wheel_base_;
+  }
+  else {
+    steering_cmd_.cmd = std::atan(msg.lateral.steering_tire_angle/steering_ratio_);
+  }
+  // steering_cmd_.cmd = sub_ulc_rpt_ptr_->vel_meas * tan(msg.lateral.steering_tire_angle)/wheel_base_;
+  // steering_cmd_.cmd_type = ds_dbw_msgs::msg::SteeringCmd::CMD_YAW_RATE;
+  steering_cmd_.enable = true;
 
   // Set other fields to default values
   ulc_cmd_.clear = false;
@@ -342,25 +346,25 @@ void BelivVehInterface::callbackTurnIndicatorsCmd(
   // set flag for publishing turning indicators
   // publish_turn_indicators_ = true;
 
-  turn_indicators_misc_command_received_time_ = this->now();
-  turn_indicators_misc_cmd_.header.frame_id = base_frame_id_;
-  turn_indicators_misc_cmd_.header.stamp = get_clock()->now();
+  turn_signal_cmd_received_time_ = this->now();
+  turn_signal_cmd_.header.frame_id = base_frame_id_;
+  turn_signal_cmd_.header.stamp = get_clock()->now();
   
   if (turning_indicators_cmd.command == TurnIndicatorsCommand::NO_COMMAND) {
-    turn_indicators_misc_cmd_.turn_signal.value = ds_dbw_msgs::msg::TurnSignal::NONE;
+    turn_signal_cmd_.cmd.value = ds_dbw_msgs::msg::TurnSignal::NONE;
   }
   else if (turning_indicators_cmd.command == TurnIndicatorsCommand::ENABLE_RIGHT) {
-    turn_indicators_misc_cmd_.turn_signal.value = ds_dbw_msgs::msg::TurnSignal::RIGHT;
+    turn_signal_cmd_.cmd.value = ds_dbw_msgs::msg::TurnSignal::RIGHT;
   }
   else if (turning_indicators_cmd.command == TurnIndicatorsCommand::ENABLE_LEFT) {
-    turn_indicators_misc_cmd_.turn_signal.value = ds_dbw_msgs::msg::TurnSignal::LEFT;
+    turn_signal_cmd_.cmd.value = ds_dbw_msgs::msg::TurnSignal::LEFT;
   }
   else if (turning_indicators_cmd.command == TurnIndicatorsCommand::DISABLE) {
-    turn_indicators_misc_cmd_.turn_signal.value = ds_dbw_msgs::msg::TurnSignal::NONE;
+    turn_signal_cmd_.cmd.value = ds_dbw_msgs::msg::TurnSignal::NONE;
   }
 
   // Set other fields to default values
-  turn_indicators_misc_cmd_.parking_brake.value = ds_dbw_msgs::msg::PrkBrkCmd::NONE;
+  // turn_signal_cmd_.parking_brake.value = ds_dbw_msgs::msg::PrkBrkCmd::NONE;
 }
 
 // void BelivVehInterface::callbackHazardLightsCmd(
@@ -451,17 +455,17 @@ void BelivVehInterface::recvDbwEnabled(std_msgs::msg::Bool::ConstSharedPtr msg){
 
 
 int32_t BelivVehInterface::toAutowareTurnIndicatorsReport(
-  const ds_dbw_msgs::msg::MiscReport &misc_rpt)
+  const ds_dbw_msgs::msg::TurnSignalReport &turn_signal_rpt)
 {
   using autoware_vehicle_msgs::msg::TurnIndicatorsReport;
-  using ds_dbw_msgs::msg::MiscReport;
+  using ds_dbw_msgs::msg::TurnSignalReport;
   using ds_dbw_msgs::msg::TurnSignal;
 
-  if (misc_rpt.turn_signal.value == ds_dbw_msgs::msg::TurnSignal::RIGHT){
+  if (turn_signal_rpt.output.value == ds_dbw_msgs::msg::TurnSignal::RIGHT){
     return TurnIndicatorsReport::ENABLE_RIGHT;
-  } else if (misc_rpt.turn_signal.value == ds_dbw_msgs::msg::TurnSignal::LEFT){
+  } else if (turn_signal_rpt.output.value == ds_dbw_msgs::msg::TurnSignal::LEFT){
         return TurnIndicatorsReport::ENABLE_LEFT;
-  } else if (misc_rpt.turn_signal.value == ds_dbw_msgs::msg::TurnSignal::NONE){
+  } else if (turn_signal_rpt.output.value == ds_dbw_msgs::msg::TurnSignal::NONE){
     return TurnIndicatorsReport::DISABLE;
   }
   return TurnIndicatorsReport::DISABLE;
@@ -470,13 +474,13 @@ int32_t BelivVehInterface::toAutowareTurnIndicatorsReport(
 
 
 int32_t BelivVehInterface::toAutowareHazardLightsReport(
-  const ds_dbw_msgs::msg::MiscReport &misc_rpt)
+  const ds_dbw_msgs::msg::TurnSignalReport &turn_signal_rpt)
 {
   using autoware_vehicle_msgs::msg::HazardLightsReport;
-  using ds_dbw_msgs::msg::MiscReport;
+  using ds_dbw_msgs::msg::TurnSignalReport;
   using ds_dbw_msgs::msg::TurnSignal;
 
-  if (misc_rpt.turn_signal.value == ds_dbw_msgs::msg::TurnSignal::HAZARD) {
+  if (turn_signal_rpt.output.value == ds_dbw_msgs::msg::TurnSignal::HAZARD) {
     return HazardLightsReport::ENABLE;
   }
 
@@ -485,22 +489,22 @@ int32_t BelivVehInterface::toAutowareHazardLightsReport(
 
 void BelivVehInterface::publishCommands(){
   /* guard */
-/*   if (sub_steering_ptr_ || sub_gear_ptr_ || sub_misc_ptr_ || sub_ulc_rpt_ptr_){
+/*   if (sub_steering_ptr_ || sub_gear_ptr_ || sub_turn_signal_ptr_ || sub_ulc_rpt_ptr_){
     RCLCPP_INFO_THROTTLE(
       get_logger(), *get_clock(), std::chrono::milliseconds(1000).count(),
       "sub_steering_ptr = %d, sub_gear_ptr= %d, sub_misc_ptr=%d, sub_ulc_rpt_ptr=%d",
-      sub_steering_ptr_ !=nullptr, sub_gear_ptr_!=nullptr, sub_misc_ptr_!=nullptr, sub_ulc_rpt_ptr_!=nullptr
+      sub_steering_ptr_ !=nullptr, sub_gear_ptr_!=nullptr, sub_turn_signal_ptr_!=nullptr, sub_ulc_rpt_ptr_!=nullptr
     );
   } */
   // if (publish_turn_indicators_ == true) {
   //   RCLCPP_INFO(get_logger(), "publish_turn_indicators_ = true");
-  //   pub_misc_cmd_->publish(turn_indicators_misc_cmd_);
+  //   pub_turn_signal_cmd_->publish(turn_signal_cmd_);
   // }
   // else {
   //   RCLCPP_INFO(get_logger(), "publish_turn_indicators_ = false");
-  //   pub_misc_cmd_->publish(hazard_lights_misc_cmd_);
+  //   pub_turn_signal_cmd_->publish(hazard_lights_misc_cmd_);
   // }
-  pub_misc_cmd_->publish(turn_indicators_misc_cmd_);
+  pub_turn_signal_cmd_->publish(turn_signal_cmd_);
   pub_ulc_cmd_->publish(ulc_cmd_);
   pub_steering_cmd_->publish(steering_cmd_);
 

@@ -57,6 +57,8 @@
 #include <ds_dbw_msgs/msg/throttle_report.hpp>
 #include <ds_dbw_msgs/msg/tire_pressures.hpp>
 #include <ds_dbw_msgs/msg/turn_signal.hpp>
+#include <ds_dbw_msgs/msg/turn_signal_cmd.hpp>
+#include <ds_dbw_msgs/msg/turn_signal_report.hpp>
 #include <ds_dbw_msgs/msg/wheel_positions.hpp>
 #include <ds_dbw_msgs/msg/wheel_speeds.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
@@ -132,7 +134,7 @@ private:
 
     typedef message_filters::sync_policies::ApproximateTime<
         ds_dbw_msgs::msg::SteeringReport, ds_dbw_msgs::msg::GearReport,
-        ds_dbw_msgs::msg::MiscReport, ds_dbw_msgs::msg::UlcReport>
+        ds_dbw_msgs::msg::TurnSignalReport, ds_dbw_msgs::msg::UlcReport>
         BelivFeedbacksSyncPolicy; 
 
     /* parameters */
@@ -166,7 +168,7 @@ private:
     rclcpp::Subscription<ds_dbw_msgs::msg::ThrottleReport>::SharedPtr sub_throttle_;
     std::unique_ptr<message_filters::Subscriber<ds_dbw_msgs::msg::SteeringReport>> sub_steering_;
     std::unique_ptr<message_filters::Subscriber<ds_dbw_msgs::msg::GearReport>> sub_gear_;
-    std::unique_ptr<message_filters::Subscriber<ds_dbw_msgs::msg::MiscReport>> sub_misc_1_;
+    std::unique_ptr<message_filters::Subscriber<ds_dbw_msgs::msg::TurnSignalReport>> sub_turn_signal_;
     rclcpp::Subscription<ds_dbw_msgs::msg::WheelSpeeds>::SharedPtr sub_wheel_speeds_;
     rclcpp::Subscription<ds_dbw_msgs::msg::WheelPositions>::SharedPtr sub_wheel_positions_;
     rclcpp::Subscription<ds_dbw_msgs::msg::TirePressures>::SharedPtr sub_tire_pressure_;
@@ -197,8 +199,8 @@ private:
     rclcpp::Publisher<ds_dbw_msgs::msg::UlcCmd>::SharedPtr pub_ulc_cmd_;
     // To dbwNode
     rclcpp::Publisher<ds_dbw_msgs::msg::SteeringCmd>::SharedPtr pub_steering_cmd_;
-    rclcpp::Publisher<ds_dbw_msgs::msg::MiscCmd>::SharedPtr pub_misc_cmd_;
-    // rclcpp::Publisher<ds_dbw_msgs::msg::MiscCmd>::SharedPtr pub_hazard_lights_cmd_;
+    rclcpp::Publisher<ds_dbw_msgs::msg::TurnSignalCmd>::SharedPtr pub_turn_signal_cmd_;
+    // rclcpp::Publisher<ds_dbw_msgs::msg::TurnSignalCmd>::SharedPtr pub_hazard_lights_cmd_;
 
 
     // To Autoware
@@ -228,23 +230,23 @@ private:
       /* input values */
     ActuationCommandStamped::ConstSharedPtr actuation_cmd_ptr_;
     autoware_control_msgs::msg::Control::ConstSharedPtr control_cmd_ptr_;
-    autoware_vehicle_msgs::msg::TurnIndicatorsCommand::ConstSharedPtr turn_indicators_cmd_ptr_;
+    autoware_vehicle_msgs::msg::TurnIndicatorsCommand::ConstSharedPtr turn_signal_cmd_ptr_;
     autoware_vehicle_msgs::msg::HazardLightsCommand::ConstSharedPtr hazard_lights_cmd_ptr_;
     autoware_vehicle_msgs::msg::GearCommand::ConstSharedPtr gear_cmd_ptr_;
  
     ds_dbw_msgs::msg::SteeringReport::ConstSharedPtr sub_steering_ptr_;
     ds_dbw_msgs::msg::GearReport::ConstSharedPtr sub_gear_ptr_;
-    ds_dbw_msgs::msg::MiscReport::ConstSharedPtr sub_misc_ptr_;
+    ds_dbw_msgs::msg::TurnSignalReport::ConstSharedPtr sub_turn_signal_ptr_;
     ds_dbw_msgs::msg::UlcReport::ConstSharedPtr sub_ulc_rpt_ptr_;
     ds_dbw_msgs::msg::BrakeReport::ConstSharedPtr sub_brake_ptr_;
     ds_dbw_msgs::msg::UlcCmd ulc_cmd_;
     ds_dbw_msgs::msg::SteeringCmd steering_cmd_;
-    ds_dbw_msgs::msg::MiscCmd turn_indicators_misc_cmd_;
-    // ds_dbw_msgs::msg::MiscCmd hazard_lights_misc_cmd_;
+    ds_dbw_msgs::msg::TurnSignalCmd turn_signal_cmd_;
+    // ds_dbw_msgs::msg::TurnSignalCmd hazard_lights_misc_cmd_;
 
     bool is_emergency_{false};
     rclcpp::Time control_command_received_time_;
-    rclcpp::Time turn_indicators_misc_command_received_time_;
+    rclcpp::Time turn_signal_cmd_received_time_;
     // rclcpp::Time hazard_lights_misc_command_received_time_;
 
    
@@ -258,11 +260,11 @@ private:
     void callbackInterface(
         const ds_dbw_msgs::msg::SteeringReport::ConstSharedPtr steering_rpt,
         const ds_dbw_msgs::msg::GearReport::ConstSharedPtr gear_rpt,
-        const ds_dbw_msgs::msg::MiscReport::ConstSharedPtr misc_rpt,
+        const ds_dbw_msgs::msg::TurnSignalReport::ConstSharedPtr turn_signal_rpt,
         const ds_dbw_msgs::msg::UlcReport::ConstSharedPtr ulc_rpt);
     int32_t toAutowareShiftReport(const ds_dbw_msgs::msg::GearReport& gear_rpt);
-    int32_t toAutowareTurnIndicatorsReport(const ds_dbw_msgs::msg::MiscReport &misc_rpt);
-    int32_t toAutowareHazardLightsReport(const ds_dbw_msgs::msg::MiscReport &misc_rpt);
+    int32_t toAutowareTurnIndicatorsReport(const ds_dbw_msgs::msg::TurnSignalReport &turn_signal_rpt);
+    int32_t toAutowareHazardLightsReport(const ds_dbw_msgs::msg::TurnSignalReport &turn_signal_rpt);
     void onControlModeRequest(
         const ControlModeCommand::Request::SharedPtr request,
         const ControlModeCommand::Response::SharedPtr response);
